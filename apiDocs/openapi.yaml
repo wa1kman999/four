@@ -1,0 +1,1809 @@
+openapi: 3.0.0
+info:
+  version: 1.0-BETA
+  title: new4bytesApi前后端接口契约
+  description: |
+    + 本接口规范包含认证以及完整的服务端资源端点接口
+    + 使用`JSON`作为交互数据格式
+    + 使用`JWT`作为认证标准
+    + **应当将本文档视为严格的契约**
+servers:
+  - url: 'http://192.168.0.106:8000/api/v1'
+    description: 测试服务器
+  - url: 'https://4bytes.cn/api/v1'
+    description: 生产服务器
+components:
+
+  securitySchemes:
+    JWTAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 用于APP认证
+
+  schemas:
+    UserInfo:
+      properties:
+        id:
+          type: integer
+        nickname:
+          type: string
+        brief:
+          type: string
+        avatar:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        alipay:
+          type: string
+        gender:
+          type: integer
+        notification:
+          type: integer
+        wechat_nickname:
+          type: string
+        github_nickname:
+          type: string
+
+    Article:
+      properties:
+        id:
+          type: integer
+          description: 文章id
+        classification:
+          type: string
+          description: 文章分类
+        brief:
+          type: string
+          description: 文章简介
+        title:
+          type: string
+          description: 标题
+        created:
+          type: string
+          description: 发布时间
+        fav_count:
+          type: string
+          description: 点赞人数
+        thumbnail:
+          type: string
+          description: 图片
+        top:
+          type: boolean
+          description: 置顶
+        essence:
+          type: boolean
+          description: 精华
+        content:
+          type: boolean
+          description: 文章内容
+        author:
+          $ref: '#/components/schemas/UserInfo'
+
+    ArticleClassification:
+      properties:
+        official:
+          type: boolean
+          description: 官方分类
+        classification:
+          type: string
+          description: 文章分类
+        icon:
+          type: string
+          description: 图标地址
+    
+    LectureInfo:
+      properties:
+        lecture_id:
+          type: integer
+        title:
+          type: string
+        sort_index:
+          type: integer
+        is_free:
+          type: boolean
+        content:
+          type: string
+        video:
+          type: string
+        video_length:
+          type: string
+    
+    ChapterInfo:
+      properties:
+        chapter_id:
+          type: integer
+        title:
+          type: string
+        sort_index:
+          type: string
+        lectures:
+          type: array
+          items:
+            $ref: '#/components/schemas/LectureInfo'    
+
+    CourseInfo:
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        target:
+          type: string
+        thumbnail:
+          type: string          
+        banner:
+          type: string          
+        brief:
+          type: string          
+        desc:
+          type: string          
+        original_price:
+          type: string          
+        current_price:
+          type: string          
+        rank:
+          type: integer
+        study_count:
+          type: integer  
+        favour_count:
+          type: integer
+        comment_count:
+          type: integer
+        promotion_expire:
+          type: string          
+        tech:
+          type: string          
+        env:
+          type: string          
+        content:
+          type: string          
+        status:
+          type: boolean
+        is_promoted:
+          type: boolean
+        video_length:
+          type: string 
+
+    PromotionInfo:
+      properties:
+        code:
+          type: string
+        brief:
+          type: string
+        expire:
+          type: string
+        started:
+          type: string
+        classification:
+          type: integer
+          enum:
+            - 1
+            - 2
+        value:
+          type: integer
+          
+  responses:
+      TokenGranted:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                expire:
+                  type: string
+                  format: date-time
+              required:
+                - token
+                - expire
+          text/plain: {}
+        description: TOKEN获取
+
+paths:
+  /banner/banner:
+    get:
+      summary: 获取首页banner
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: bannerid
+                  img_url:
+                    type: string
+                    description: 图片链接
+                  link:
+                    type: string
+                    description: 指向链接
+                  name:
+                    type: string
+                    description: banner名称
+
+  /banner/friendLink:
+    get:
+      summary: 获取友情链接
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: 友情链接ID
+                  link:
+                    type: string
+                    description: 指向链接
+                  name:
+                    type: string
+                    description: 链接网站
+  /banner/activity:
+    get:
+      summary: 获取活动信息
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: 活动ID
+                  img_url:
+                    type: string
+                    description: 活动图片
+                  link:
+                    type: string
+                    description: 活动地址
+                  name:
+                    type: string
+                    description: 活动名称
+
+  /community:
+    get:
+      summary: 社区文章列表
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: 当前页码
+          required: true
+        - in: query
+          name: size
+          schema:
+            type: integer
+            minimum: 1
+          description: 分页大小
+          required: true
+        - in: query
+          name: classification
+          schema:
+            type: string
+            description: 文章分类
+          required: false
+        
+      responses:
+        '200':
+          description: 文章列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+        '401':
+          description: 禁止获取
+
+  /community/classification:
+    get:
+      summary: 文章分类
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: string
+            minimum: 1
+          description: 获取类型页面
+      responses:
+        '200':
+          description: 获取成功
+          content:
+           application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleClassification'
+
+  /community/article:
+    get:
+      summary: 获取文章详情
+      parameters:
+        - in: query
+          name: aid
+          schema:
+            type: integer
+            minimum: 1
+          description: 文章id
+          required: true
+      responses:
+        '200':
+          description: 获取成功
+          content:
+           application/json:
+            schema:
+              $ref: '#/components/schemas/Article'
+    put:
+      summary: 发布文章
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: Data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                classification:
+                  type: string
+                title:
+                  type: string
+                content:
+                  type: string
+                brief:
+                  type: string
+                pic:
+                  type: string
+      responses:
+        '200':
+          description: 发布成功
+
+  /community/reply:
+    get:
+      summary: 获取回复
+      parameters:
+        - in: query
+          name: cid
+          schema:
+            type: string
+            minimum: 1
+          description: 评论id
+      responses:
+        '200':
+          description: 获取成功
+          content:
+           application/json:
+            schema:
+              properties:
+                id:
+                  type: integer
+                created:
+                  type: string
+                nickname:
+                  type: string
+                user_id:
+                  type: integer
+                reply_to_nick:
+                  type: string
+                reply_to_id:
+                  type: string
+                content:
+                  type: string
+
+  /community/comment:
+    get:
+      summary: 文章评论
+      parameters:
+        - in: query
+          name: aid
+          schema:
+            type: string
+            minimum: 1
+          description: 文章id
+      responses:
+        '200':
+          description: 获取成功
+          content:
+           application/json:
+            schema:
+              properties:
+                id:
+                  type: integer
+                created:
+                  type: string
+                nickname:
+                  type: string
+                user_id:
+                  type: integer
+                content:
+                  type: string
+                reply_count:
+                  type: string
+
+    put:
+      summary: 回复文章
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: 当method为comment时为评论文章， 当有cid时为回复一级评论，当有rid时回复二级评论
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                aid:
+                  type: integer
+                cid:
+                  type: integer
+                rid:
+                  type: integer
+                method:
+                  type: string
+                  enum:
+                    - comment
+                    - reply
+                content:
+                  type: string
+              required:
+                - aid
+                - method
+                - content
+      responses:
+        '200':
+          description: 发布成功  
+
+  /community/favour:
+    put:
+      summary: 文章点赞
+      security:
+      - JWTAuth: []
+      requestBody:
+        description: 文章id
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                aid:
+                  type: integer
+      responses:
+        '200':
+          description: 点赞成功
+    delete:
+      summary: 取消点赞
+      security:
+      - JWTAuth: []
+      requestBody:
+        description: 文章id
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                aid:
+                  type: integer
+      responses:
+        '200':
+          description: 取消点赞成功
+
+  /course/courseInfo:
+    get:
+      summary: 获取课程列表
+      parameters:
+        - in: query
+          name: target
+          schema:
+            type: string
+            enum:
+              - course
+              - micro
+              - demo
+          description: 课程类型
+          required: true
+        
+        - in: query
+          name: is_video
+          schema:
+            type: string
+            enum:
+              - T
+              - F
+          description: 视频课程
+
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: 页数
+          required: true
+
+        - in: query
+          name: size
+          schema:
+            type: integer
+            minimum: 1
+          description: 分页大小
+          required: true
+
+        - in: query
+          name: tag
+          schema:
+            type: string
+          description: 文章标签
+
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum:
+              - -created
+              - -display_hot
+              - -current_price
+              - current_price
+              - -display_rank
+          description: 排序方式
+
+        - in: query
+          name: free
+          schema:
+            type: string
+            enum:
+              - T
+              - F
+          description: 免费
+
+      responses:
+        '200':
+          description: 获取成功
+          content:
+           application/json:
+            schema:
+              type: array
+              items: 
+                $ref : '#/components/schemas/CourseInfo'
+                
+  /course/courseDetail:
+    get:
+      summary: 课程详情
+      parameters:
+        - in : query
+          name: cid
+          schema:
+            type: integer
+          description: 课程id
+
+        - in : query
+          name: share
+          schema:
+            type: string
+          description: 分享码
+
+        - in : query
+          name: need_more
+          schema:
+            type: boolean
+          description: 是否需要详情
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref : '#/components/schemas/CourseInfo'
+
+  /course/search:
+    get:
+      summary: 搜索
+      parameters:
+        - in: query
+          name: keyword
+          schema:
+            type: string
+
+        - in: query
+          name: target
+          schema:
+            type: string
+            enum:
+              - course
+              - micro
+              - demo
+
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum:
+              - -created
+              - -display_hot
+              - -current_price
+              - current_price
+              
+        - in: query
+          name: free
+          schema:
+            type: string
+            enum:
+              - T
+              - F
+      responses:
+        '200':
+          description: 成功
+          content:
+           application/json:
+            schema:
+              type: array
+              items: 
+                $ref : '#/components/schemas/CourseInfo'
+
+  /course/getTags:
+    get:
+      summary: 获取课程标签
+      responses:
+        '200':
+          description: 成功
+          content:
+           application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  text:
+                    type: string
+                  value:
+                    type: integer
+
+  /course/catalogue:
+    get:
+      security:
+      - JWTAuth: []
+      summary: 获取课程目录
+      parameters:
+        - in: query
+          name: cid
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: 成功
+          content:
+           application/json:
+            schema:
+              properties:
+                title:
+                  type: string
+                study_count:
+                  type: integer
+                lecture_count:
+                  type: integer
+                paid:
+                  type: boolean
+                video:
+                  type: string
+                chapters:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ChapterInfo'
+                    
+  /course/video:
+    get:
+      security:
+      - JWTAuth: []
+      summary: 获取视频链接
+      parameters:
+        - in: query
+          name: cid
+          description: 课程id
+          schema:
+            type: integer
+
+        - in: query
+          name: lid
+          description: 课时id
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: 成功
+          content:
+           application/json:
+            schema:
+              properties:
+                video:
+                  type: string
+                video_length:
+                  type: string
+
+  /users/captcha:
+    get:
+      summary: 获取验证码
+      parameters:
+        - in: query
+          name: username
+          description: 用户名
+          schema:
+            type: integer
+
+        - in: query
+          name: captchaFor
+          description: 用途
+          schema:
+            type: string
+            enum:
+              - register
+              - login
+      responses:
+        '200':
+          description: 发送成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  captcha_id:
+                    type: string
+                  expire:
+                    type: string
+                  nextTrySeconds:
+                    type: integer
+
+  /users/login:
+    post:
+      summary: 登录
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                seed:
+                  type: integer
+                  description: 混淆随机数
+      responses:
+        200:
+          $ref: '#/components/responses/TokenGranted'
+       
+        400:
+          description: 登录失败
+    delete:
+      summary: 注销
+      security:
+        - JWTAuth: []
+      description: 注销登录
+      responses:
+        200:
+          description: 注销成功
+  
+  /users/sms_login:
+    put:
+      summary: 短信登录
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                username:
+                  type: integer
+                captchaCode:
+                  type: string
+                captchaId:
+                  type: string
+      responses:
+        200:
+          $ref: '#/components/responses/TokenGranted'
+  
+  /users/register:
+    put:
+      summary: 注册（若用户已登录则视为绑定）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                seed:
+                  type: integer
+                  description: 混淆随机数
+                captchaCode:
+                  type: string
+                captchaId:
+                  type: string
+      responses:
+        200:
+          $ref: '#/components/responses/TokenGranted'
+        400:
+          description: 注册失败
+
+  /users/binding:
+    put:
+      summary: 绑定手机或邮箱
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                username:
+                  type: string
+                seed:
+                  type: integer
+                  description: 混淆随机数
+                captchaCode:
+                  type: string
+                captchaId:
+                  type: string
+      responses:
+        200:
+          description: 绑定成功
+        400:
+          description: 绑定失败
+    delete:
+      summary: 解绑
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: target
+          schema:
+            type: string
+            enum:
+              - p
+              - e
+      responses:
+        200:
+          description: 解绑成功
+
+  /users/socialLogin:
+    get:
+      summary: 社交账号绑定
+      parameters:
+        - in: query
+          name: channel
+          schema:
+            type: string
+            enum:
+              - wechat
+              - github
+      responses:
+        302:
+          description: 跳转授权
+
+    delete:
+      summary: 社交解绑
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: channel
+          schema:
+            type: string
+            enum:
+              - wechat
+              - github
+      responses:
+        200:
+          description: 解绑成功
+
+  /users/resetpwd:
+    put:
+      summary: 修改密码
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                
+                username:
+                  type: string
+                password:
+                  type: string
+                seed:
+                  type: integer
+                  description: 混淆随机数
+                captchaCode:
+                  type: string
+                captchaId:
+                  type: string
+      responses:
+        200:
+          description: 修改成功
+
+  /users/course:
+    post:
+      summary: 上传课程
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                target:
+                  type: string
+                  enum:
+                    - course
+                    - micro
+                    - demo
+                title:
+                  type: string
+                  description: 标题
+                brief:
+                  type: string
+                  description: 简介
+                desc:
+                  type: string
+                  description: 详细介绍
+                is_promoted:
+                  type: boolean
+                is_video:
+                  type: boolean
+                original_price:
+                  type: string
+                env:
+                  type: string
+                tech:
+                  type: string
+                video:
+                  type: string
+                video_length:
+                  type: string
+                chapters:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      sort_index:
+                        type: integer
+                      lectures:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              title:
+                                type: string
+                              sort_index:
+                                type: integer
+                              content:
+                                type: string
+                                description: 图文内容
+                              video:
+                                type: string
+                                description: 视频链接
+                              video_length:
+                                type: string
+                                description: 视频长度
+                              is_free:
+                                type: boolean
+      responses:
+        200:
+          description: 创建成功  
+    put:
+      summary: 编辑课程基本信息
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  type: string
+                  description: 标题
+                brief:
+                  type: string
+                  description: 简介
+                desc:
+                  type: string
+                  description: 详细介绍
+                is_promoted:
+                  type: boolean
+                is_video:
+                  type: boolean
+                original_price:
+                  type: string
+                video:
+                  type: string
+                  description: 视频链接
+                video_length:
+                  type: string
+                  description: 视频长度
+                env:
+                  type: string
+                tech:
+                  type: string
+      responses:
+        200:
+          description: 修改成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  title:
+                    type: string
+                    description: 标题
+                  brief:
+                    type: string
+                    description: 简介
+                  desc:
+                    type: string
+                    description: 详细介绍
+                  is_promoted:
+                    type: boolean
+                  is_video:
+                    type: boolean
+                  original_price:
+                    type: string
+                  video:
+                    type: string
+                    description: 视频链接
+                  video_length:
+                    type: string
+                    description: 视频长度
+                  env:
+                    type: string
+                  tech:
+                    type: string
+
+  /users/myCourse:
+    get:
+      security:
+        - JWTAuth: []
+      summary: 我上传的课程
+      parameters:
+        - in: query
+          name: target
+          schema:
+            type: string
+            enum:
+              - course
+              - micro
+              - demo
+      responses:
+        200:
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseInfo'
+
+  /users/chapter:
+    put:
+      security:
+        - JWTAuth: []
+      summary: 修改章节信息
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cid:
+                  type: integer
+                chapter_id:
+                  type: integer
+                title:
+                  title: string
+      responses:
+        200:
+          description: 修改成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  cid:
+                    type: integer
+                  chapter_id:
+                    type: integer
+                  title:
+                    title: string
+
+  /users/lecture:
+    put:
+      security:
+        - JWTAuth: []
+      summary: 修改课时信息
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cid:
+                  type: integer
+                chapter_id:
+                  type: integer
+                lecture_id:
+                  type: integer
+                content:
+                  type: string
+                is_free:
+                  type: boolean
+                video:
+                  type: string
+                video_length:
+                  type: string
+                title:
+                  type: string
+      responses:
+        200:
+          description: 修改成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  cid:
+                    type: integer
+                  chapter_id:
+                    type: integer
+                  lecture_id:
+                    type: integer
+                  content:
+                    type: string
+                  is_free:
+                    type: boolean
+                  video:
+                    type: string
+                  video_length:
+                    type: string
+                  title:
+                    type: string
+      
+  /users/notification:
+    get:
+      summary: 获取通知消息
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: classification
+          schema:
+            type: string
+      responses:
+        200:
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  not_read:
+                    type: integer
+                    description: 未读消息数
+                  info:
+                    type: array
+                    items:
+                      properties:
+                        id:
+                          type: integer
+                        from_user:
+                          type: string
+                        url:
+                          type: string
+                        created:
+                          type: string
+                        content:
+                          type: string
+                        comment:
+                          type: string
+                        read:
+                          type: boolean
+    put:
+      summary: 标记为已读(若all为T则表示标记所有为已读，否则则需传nid)
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                all:
+                  type: string
+                  enum:
+                    - T
+                    - F
+                nid:
+                  type: integer
+      responses:
+        200:
+          description: 成功
+
+  /users/profile:
+    get:
+      summary: 获取用户信息
+      security:
+        - JWTAuth: []
+      responses:
+        200:
+          description: 获取个人信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+    put:
+      summary: 修改个人信息
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInfo'
+      responses:
+        200:
+          description: 修改成功
+  
+  /users/favour:
+    get:
+      summary: 我收藏的
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: target
+          schema:
+            type: string
+            enum:
+              - course
+              - micro
+              - demo
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseInfo'
+    put:
+      summary: 收藏课程
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cid:
+                  type: integer
+      responses:
+        200:
+          description: 成功
+
+    delete:
+      summary: 取消收藏
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cid:
+                  type: integer
+      responses:
+        200:
+          description: 成功
+
+  /users/rank:
+    put:
+      summary: 评分
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cid:
+                  type: integer
+                rank:
+                  type: integer
+      responses:
+        200:
+          description: 成功
+
+  /users/bought:
+    get:
+      summary: 我购买的
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: target
+          schema:
+            type: string
+            enum:
+              - course
+              - micro
+              - demo
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseInfo'
+  
+  /users/earning:
+    get:
+      summary: 我的收益
+      security:
+        - JWTAuth: []
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  all_earning:
+                    type: integer
+                  earning_list:
+                    type: array
+                    items:
+                      properties:
+                        title:
+                          type: string
+                        classification:
+                          type: string
+                        approach:
+                          type: string
+                        value:
+                          type: integer
+                        time:
+                          type: string
+
+  /users/withdraw:
+    get:
+      summary: 提现记录
+      security:
+      - JWTAuth: []    
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: integer
+                    alipay:
+                      type: string
+                    real_name:
+                      type: string
+                    value:
+                      type: integer
+                    status:
+                      type: integer
+                      enum:
+                        - 0
+                        - 1
+                        - 2
+                    created:
+                      type: string
+    put:
+      summary: 申请提现
+      security:
+      - JWTAuth: []  
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                alipay:
+                  type: string
+                real_name:
+                  type: string
+                value:
+                  type: integer
+      responses:
+        200:
+          description: 提现成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                  alipay:
+                    type: string
+                  real_name:
+                    type: string
+                  value:
+                    type: integer
+                  status:
+                    type: integer
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                  created:
+                    type: string
+
+  /users/pay:
+    get:
+      summary: 获取支付信息
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: cid
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseInfo'
+    
+    put:
+      summary: 支付
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cid:
+                  type: integer
+                promotion_code:
+                  type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  order_num:
+                    type: string
+                  paid:
+                    type: boolean
+                  pay_url:
+                    type: string
+  /users/history:
+    get:
+      summary: 学习历史
+      security:
+        - JWTAuth: []
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      type: string
+                    is_video:
+                      type: boolean
+                    thumbnail:
+                      type: string
+                    study_time:
+                      type: string
+                    lecture_count:
+                      type: integer
+                    study_count:
+                      type: integer
+                    lecture_id:
+                      type: integer
+                    lecture_title:
+                      type: string
+                    sort_index:
+                      type: integer
+                    study_length:
+                      type: string
+                    study_percent:
+                      type: string
+    put:
+      summary: 保存学习进度
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cid:
+                  type: integer
+                lid:
+                  type: integer
+                length:
+                  type: string
+      responses:
+        200:
+          description: 保存成功
+        
+  /users/comment:
+    get:
+      summary: 获取课程评论
+      parameters:
+        - in: query
+          name: cid
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: integer
+                    nickname:
+                      type: string
+                    avatar:
+                      type: string
+                    content:
+                      type: string
+                    created:
+                      type: string
+                    reply:
+                      type: array
+                      items:
+                        properties:
+                          id:
+                            type: integer
+                          content:
+                            type: string
+                          author:
+                            type: boolean
+                          created:
+                            type: string
+                            format: date-time
+    put:
+      summary: 评价课程
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cid:
+                  type: integer
+                content:
+                  type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                properties:
+                    id:
+                      type: integer
+                    nickname:
+                      type: string
+                    avatar:
+                      type: string
+                    content:
+                      type: string
+                    created:
+                      type: string
+                    reply:
+                      type: array
+                      items:
+                        properties:
+                          id:
+                            type: integer
+                          content:
+                            type: string
+                          author:
+                            type: boolean
+                          created:
+                            type: string
+                            format: date-time
+  /users/reply:
+    put:
+      summary: 回复评论
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                content:
+                  type: string
+                comment_id:
+                  type: integer
+      responses:
+        200:
+          description: 回复成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                  content:
+                    type: string
+                  author:
+                    type: boolean
+                  created:
+                    type: string
+                    format: date-time
+    
+  /users/usablePromotion:
+    get:
+      summary: 可用优惠券
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: cid
+          schema:
+            type: integer
+            description: 若有cid则视为支付页面获取该课程可用优惠券
+
+
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PromotionInfo'
+    put:
+      summary: 兑换优惠券
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                code:
+                  type: string
+      responses:
+        200:
+          description: 兑换成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromotionInfo'
+
+  /users/genPromotion:
+    get:
+      summary: 我生成的优惠券
+      security:
+        - JWTAuth: []
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PromotionInfo'
+    put:
+      summary: 生成优惠券
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cid:
+                  type: integer
+                value:
+                  type: integer
+                started:
+                  type: string
+                expire:
+                  type: string
+                gen_count:
+                  type: integer
+      responses:
+        200:
+          description: 生成成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PromotionInfo'
+
+  /users/checkPaid:
+    post:
+      summary: 查询支付
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                order_num:
+                  type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  paid:
+                    type: boolean
+  
+  /users/share:
+    get:
+      summary:  分享链接
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: cid
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  url:
+                    type: string
+  
+  /users/getToken:
+    get:
+      summary: 获取七牛token
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: file_type
+          schema:
+            type: string
+            enum:
+              - img
+              - video
+      responses:
+        200:
+          description: 成功
+          content:
+            application/json:
+              schema:
+                properties:
+                  token:
+                    type: string
+                  fname:
+                    type: string
+        401:
+          description: 登录
+          
