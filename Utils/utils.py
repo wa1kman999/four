@@ -15,7 +15,7 @@ def create_token(payload, timeout=200):   #过期时间可能还需要配置
     return result
 
 
-#
+
 def jwt_decode_handler(token):  #获取token
     result = {'status': False, 'data': None, 'error': None}
     try:
@@ -29,3 +29,20 @@ def jwt_decode_handler(token):  #获取token
     except jwt.InvalidTokenError:
         result['error'] = '非法的token'
     return result
+
+
+def is_valid_mobile_phone(phone):
+    '''
+    判断是否为手机号
+    '''
+    import re
+    return re.match('^1[34578]\d{9}$', phone)
+
+
+def is_safe_password(password):
+    '''
+    检查密码强度
+    密码要求包含大小写字母和数字,密码长度至少8位
+    '''
+    import re
+    return re.match('(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$', password)

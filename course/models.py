@@ -4,8 +4,6 @@ from django.utils.deconstruct import deconstructible
 from uuid import uuid4
 
 
-
-
 @deconstructible
 class UploadTo(object):
     def __init__(self, path):
@@ -16,7 +14,8 @@ class UploadTo(object):
         filename = '{}.{}'.format(uuid4().hex, ext)
         return self.sub_path + filename
 
-#标签
+
+# 标签
 class Tag(models.Model):
     content = models.CharField(max_length=64, verbose_name='标签')
 
@@ -26,7 +25,8 @@ class Tag(models.Model):
     class Meta:
         verbose_name = '标签'
 
-#课程信息
+
+# 课程信息
 class Course(models.Model):
     target_choice = (
         ('course', '课程'),
@@ -85,42 +85,26 @@ class Course(models.Model):
     def chapter(self):
         queryset = self.chapters.all()
         for i in queryset:
-            res = []
-            # sea = i.lectures.all()
-            # for j in sea:
-            #     rst = []
-            #     rst.append(
-            #         {
-            #             "lecture_id": j.id,
-            #             "title": j.title,
-            #             "sort_index": j.sort_index,
-            #             "is_free": j.is_free,
-            #             "content": j.content,
-            #             "video": j.video,
-            #             "video_length": j.video_length,
-            #         }
-            #     )
-            #     return rst
+            res = list()
             res.append(
                 {"chapter_id": i.id,
                  'title': i.title,
                  'sort_index': i.sort_index,
                  'lectures': [{
-                    'lecture_id': j.id,
-                    'title': j.title,
-                    'sort_index': j.sort_index,
-                    'is_free': j.is_free,
-                    'video': j.video,
-                    'content': j.content,
-                    'video_length': j.video_length,
-                    } for j in i.lectures.all()]
+                     'lecture_id': j.id,
+                     'title': j.title,
+                     'sort_index': j.sort_index,
+                     'is_free': j.is_free,
+                     'video': j.video,
+                     'content': j.content,
+                     'video_length': j.video_length,
+                 } for j in i.lectures.all()]
                  }
             )
             return res
 
 
-
-#章节列表
+# 章节列表
 class Chapter(models.Model):
     course = models.ForeignKey(to=Course, on_delete=models.CASCADE, related_name='chapters')
     sort_index = models.IntegerField(null=True, verbose_name='章节')
@@ -132,7 +116,8 @@ class Chapter(models.Model):
     class Meta:
         verbose_name_plural = '章节列表'
 
-#课时列表
+
+# 课时列表
 class Lecture(models.Model):
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='lectures')
     title = models.CharField(max_length=256, blank=False, verbose_name='标题')
@@ -143,14 +128,14 @@ class Lecture(models.Model):
     content = models.TextField(null=True, blank=True, verbose_name='图文内容(markdown)')
     is_free = models.BooleanField(default=False, verbose_name='是否免费')
 
-
     def __str__(self):
         return self.title
 
     class Meta:
         verbose_name_plural = '课时列表'
 
-#课程数据
+
+# 课程数据
 class CourseData(models.Model):
     course_classification_choice = (
         (0, '普通课程'),
@@ -166,4 +151,3 @@ class CourseData(models.Model):
 
     def __str__(self):
         return self.get_course_classification_display()
-

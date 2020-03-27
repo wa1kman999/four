@@ -19,6 +19,7 @@ class CourseInfoViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     ordering_fields = ('-created', '-display_hot', '-current_price', 'current_price', '-display_rank')
     pagination_class = Pagination
 
+
 # 这里要用到过滤和筛选  待会学
 
 
@@ -38,7 +39,6 @@ class CourseTagViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 class CourseCatalogueViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = serializers.CourseCatalogueSerializer
     queryset = models.Course.objects.all()
-
 
 
 # 获取视频连接

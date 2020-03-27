@@ -4,9 +4,25 @@ from rest_framework.response import Response
 from Utils.utils import create_token
 from user.models import User
 from .serializers import LoginViewSerializer
+from .serializers import MobileViewSerializer
+from django.core.cache import cache
+from Utils.AliMsg import SendSmsObject, create_code
+from django.conf import settings
+from .serializers import SmsLoginViewSerializer
+from .serializers import RegisterViewSerializer
+from .serializers import UserInfoViewSerializer
+from rest_framework import mixins
+from Utils.jwtAuth import JWTAuthentication
+from . import serializers
+from rest_framework import viewsets
+from course.models import Course
+from django_filters.rest_framework import DjangoFilterBackend
+from course.filters import CourseFilter
+from . import models
+from Utils.visitThrottle import VisitThrottle
 
 
-# 用户nick_name和密码登录
+# # 用户nick_name和密码登录
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginViewSerializer
     '''登录接口'''
@@ -37,12 +53,6 @@ class LoginView(generics.GenericAPIView):
 
 
 # 发送短信验证码
-from .serializers import MobileViewSerializer
-from django.core.cache import cache
-from Utils.AliMsg import SendSmsObject, create_code
-from django.conf import settings
-
-
 class MobileCodeView(generics.GenericAPIView):
     serializer_class = MobileViewSerializer
 
@@ -72,9 +82,6 @@ class MobileCodeView(generics.GenericAPIView):
 
 
 # 短信验证码登录
-from .serializers import SmsLoginViewSerializer
-
-
 class SmsLoginView(generics.GenericAPIView):
     serializer_class = SmsLoginViewSerializer
 
@@ -109,9 +116,6 @@ class SmsLoginView(generics.GenericAPIView):
 
 
 # 用户注册
-from .serializers import RegisterViewSerializer
-
-
 class RegisterView(generics.GenericAPIView):
     serializer_class = RegisterViewSerializer
 
@@ -137,51 +141,33 @@ class RegisterView(generics.GenericAPIView):
             return Response({'msg': '发生视图错误', 'errorCode': 2, 'data': {}})
 
 
-# 修改个人信息
-from .serializers import UserInfoViewSerializer
-from rest_framework import mixins
-# from rest_framework.viewsets import GenericViewSet
-from Utils.jwtAuth import JWTAuthentication
-
-
-class UserInfoView(generics.GenericAPIView):
+# 获取和修改个人信息
+# 个人信息
+class UserInfoView(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = UserInfoViewSerializer
+    authentication_classes = (JWTAuthentication, )
+
+    def get_queryset(self):
+        print(list(models.User.objects.filter(id=self.request.user.id)))
+        return list(models.User.objects.filter(id=self.request.user.id))
+
+    def create(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = self.get_serializer(user, data=request.data, partial=False)   #这个是个人用户信息更新
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+# 修改密码
+
+class ChangePwdView(mixins.CreateModelMixin, generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)
-
-    def post(self, request):
-        try:
-            nick_name = request.data.get('nick_name')
-            user_obj = User.objects.filter(nick_name=nick_name).first()
-            # user_obj2 = User.objects.filter(id=user_obj.id).first()
-            print(user_obj.id)
-            serializer = self.get_serializer(instance=user_obj, data=request.data, )  # 允许部分字段更新
-            if not serializer.is_valid():
-                return Response({'msg': str(serializer.errors), 'errorCode': 2, 'data': {}})
-            serializer.save()
-            # user_obj = request.user
-            # data = serializer.data
-            # print(user_obj)
-            # print(user_obj.password)
-            # print(data)
-            # nick_name = data.get('nick_name')
-            # password = data.get('password')
-            # user_obj.save()
-
-            # User.objects.filter(id=user_obj.id).update(**data)
-            return Response({'msg': '修改信息成功', ' errorCode': 0, 'data': {}})
-        except Exception as e:
-            print('发生错误：', e)
-            return Response({'msg': '发生未知错误', 'errorCode': 2, 'data': {}})
+    serializer_class = serializers.PasswordSerializer
 
 
 # 我上传的课程
-from . import serializers
-from rest_framework import viewsets
-from course.models import Course
-from django_filters.rest_framework import DjangoFilterBackend
-from course.filters import CourseFilter
-
-
 class myCourseViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     authentication_classes = (JWTAuthentication,)
     serializer_class = serializers.myCourseViewSerializer
@@ -193,7 +179,6 @@ class myCourseViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 # 获取通知消息和标记为已读
-from . import models
 
 
 class NotificationViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
@@ -214,9 +199,10 @@ class NotificationViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, viewse
 
 # 收藏课程列表
 class FavourViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    authentication_classes = (JWTAuthentication,)
+    authentication_classes = (JWTAuthentication, )
+    throttle_classes = (VisitThrottle, )
     serializer_class = serializers.FavourViewSerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, )
     filter_class = CourseFilter
 
     def get_queryset(self):
@@ -225,38 +211,19 @@ class FavourViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 # 收藏课程
-class Favour1ViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+class Favour1ViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     authentication_classes = (JWTAuthentication,)
     serializer_class = serializers.FavourView1Serializer
-    queryset = models.Favour.objects.all()
+    lookup_field = 'course'   #对应的就是url上的参数
 
+    def get_queryset(self):
+        return models.Favour.objects.filter(user=self.request.user.id)
 
-# 取消课程收藏   未写出来
-from rest_framework import views
-
-
-class Favour2ViewSet(views.APIView):
-    authentication_classes = (JWTAuthentication,)
-
-    # serializer_class = serializers.FavourView2Serializer
-    # queryset = models.Favour.objects.all()
-
-    def delete(self, request, *args, **kwargs):
-        cid = request.query_params
-        user = request.user
-        print(cid)
-        print(user)
-        instance = models.Favour.objects.filter(course=cid, user=request.user.id).first()
-
-        if not instance:
-            return Response({'MSG': '请先收藏'})
-        instance.delete()
-        # instance = self.get_object()
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        print(instance)
+        self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    # def perform_destroy(self, instance):
-    #     instance.delete()
-    # def get_object(self):
 
 
 # 评分
