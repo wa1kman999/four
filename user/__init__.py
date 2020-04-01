@@ -1,0 +1,1 @@
+default_app_config = "user.apps.UserConfig"  #这是在使用signal的配置
