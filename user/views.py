@@ -1,3 +1,5 @@
+import time
+
 from django.db.models import Q
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -20,6 +22,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from course.filters import CourseFilter
 from . import models
 from Utils.visitThrottle import VisitThrottle
+from .tasks import add
 
 
 # # 用户nick_name和密码登录
@@ -43,6 +46,8 @@ class LoginView(generics.GenericAPIView):
                 return Response({'msg': '用户不存在', 'errorcode': 2, 'data': {}})
             if user_obj.password == password:  # 要加密才能使用，不能再数据库中明文显示密码
                 token_data = create_token({'id': user_obj.id})  # 生成一个token
+                result = add.delay(2, 2222)
+                print('*'*50, result)
                 print(user_obj.id)
                 return Response({'msg': '登录成功', 'errorcode': 0, 'data': token_data})
             else:

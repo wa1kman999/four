@@ -16,11 +16,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from rest_framework.schemas import get_schema_view
+from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPICodec
+schema_view = get_schema_view(title='API', renderer_classes=[SwaggerUIRenderer, OpenAPICodec])
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('user.urls')),
     path('banner/', include('banner.urls')),
     path('community/', include('community.urls')),
-    path('course/', include('course.urls'))
+    path('course/', include('course.urls')),
+    path(r'docs/', schema_view, name='docs')
 
 ]

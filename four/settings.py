@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'user',
     'rest_framework',
+    'rest_framework_swagger',
     'banner',
     'community',
     'course',
@@ -74,6 +75,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'middleware.BaseMiddleWare.learnAOP',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',      #注意顺序，必须放在这儿
@@ -114,7 +116,7 @@ DATABASES = {
         'NAME': 'FOUR',
         'USER': 'root',
         'PASSWORD': 'root',
-        'HOST': 'localhost',
+        'HOST': '192.168.19.1',
         'PORT': 3306,
     }
 }
@@ -178,3 +180,7 @@ CACHES = {
         }
     }
 }
+
+#celery的配置
+CELERY_BROKER_URL = 'redis://192.168.1.62/1'
+CELERY_RESULT_BACKEND = 'redis://192.168.1.62/2'
