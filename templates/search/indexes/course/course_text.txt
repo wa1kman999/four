@@ -1,0 +1,5 @@
+# 指定根据表中的哪些字段建立索引数据
+{{ object.title }}
+{{ object.user }}
+{{ object.brief }}
+{{ object.desc }}

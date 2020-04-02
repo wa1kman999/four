@@ -10,6 +10,49 @@ from rest_framework import filters
 from Utils.pagination import Pagination
 
 
+from drf_haystack.viewsets import HaystackViewSet
+from course.serializers import CourseIndexSerializer
+from Utils.pagination import Pagination
+from drf_haystack.filters import HaystackFilter, BaseHaystackFilterBackend
+from .models import Course
+
+
+#课程搜索的视图函数
+
+
+
+class CourseSearchViewSet(HaystackViewSet):
+    # 这是自己根据 PageNumberPagination 写的分页类，照样适用
+    pagination_class = Pagination
+    # 这里可以写多个模型，相应的：serializer里也可以写多个index_classes
+    index_models = [Course, ]
+    serializer_class = CourseIndexSerializer
+    # 这时filter，这里用到了type
+    # filter_backends = [HaystackFilter]
+    # filter_fields = ("user", "title")
+    # queryset = models.Course.objects.all()
+    #
+    # def get_queryset(self, index_models=[]):
+    #     queryset = self.object_class()._clone()
+    #     # 这时改写的get_queryset函数，用到了date_added
+    #     # 如果上面没有把date_added和type加进去，这里是不能使用的
+    #     queryset = queryset.models(*self.get_index_models()).order_by("-date_added")
+    #     # queryset = queryset.models(*self.index_models).order_by("-date_added")
+    #     return queryset
+    #
+    # def get_index_models(self):
+    #     # 这是自己写的传入一个model参数，可以过滤掉不同的模型，配合上面的queryset使用
+    #     model = self.request.query_params.get("model", None)
+    #     di = {
+    #         None: self.index_models,
+    #         "topic": [Topic],
+    #         "review": [Review]
+    #     }
+    #     return di.get(model, self.index_models)
+
+
+
+
 class CourseInfoViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = serializers.CourseInfoSerializer
     queryset = models.Course.objects.all()

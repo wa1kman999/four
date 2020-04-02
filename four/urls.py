@@ -18,8 +18,16 @@ from django.urls import path, include
 
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPICodec
+
 schema_view = get_schema_view(title='API', renderer_classes=[SwaggerUIRenderer, OpenAPICodec])
 
+
+from course import views
+
+from rest_framework.routers import DefaultRouter
+routers = DefaultRouter()
+#搜索的路由
+routers.register(r'search', views.CourseSearchViewSet, basename='search')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,3 +38,5 @@ urlpatterns = [
     path(r'docs/', schema_view, name='docs')
 
 ]
+
+urlpatterns += routers.urls

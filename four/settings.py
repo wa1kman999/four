@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
@@ -25,12 +24,10 @@ SECRET_KEY = 'qvh%rkiomw$xq@$a6=d^sx6&bh-k6k-1mz^xzvi8__0uv2p@if'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
 ALLOWED_HOSTS = ['*']  # 允许所有ip访问
-#跨域增加忽略
+# 跨域增加忽略
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
-
 
 # CORS_ALLOW_METHODS = (
 #     'DELETE',
@@ -57,13 +54,14 @@ CORS_ORIGIN_ALLOW_ALL = True
 # )
 
 INSTALLED_APPS = [
-    'simpleui',      #一个django的后台管理第三方包
+    'simpleui',  # 一个django的后台管理第三方包
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'haystack',  # 搜索
     'user',
     'rest_framework',
     'rest_framework_swagger',
@@ -72,13 +70,14 @@ INSTALLED_APPS = [
     'course',
     'django_filters',
     'corsheaders',
+
 ]
 
 MIDDLEWARE = [
     'middleware.BaseMiddleWare.learnAOP',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',      #注意顺序，必须放在这儿
+    'corsheaders.middleware.CorsMiddleware',  # 注意顺序，必须放在这儿
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -91,7 +90,7 @@ ROOT_URLCONF = 'four.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -106,7 +105,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'four.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
@@ -120,7 +118,6 @@ DATABASES = {
         'PORT': 3306,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -140,7 +137,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -154,33 +150,44 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
 
-
-
 # 阿里短信设置
 ALI_KEY = "your key"
 ALI_SECRET = 'your secret'
-ALI_REGION = 'your region'  #一般是 'cn-hangzhou'
+ALI_REGION = 'your region'  # 一般是 'cn-hangzhou'
 ALI_SIGNNAME = 'your signame'
 # 登录使用的信息模板
 ALI_LOGOIN_CODE = 'your msg tempalte id'
 
-#缓存配置
+# 缓存配置
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.19.140:6379/0", #就是Ubuntu的ip地址,安装pip install django-redis
+        "LOCATION": "redis://192.168.19.140:6379/0",  # 就是Ubuntu的ip地址,安装pip install django-redis
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
 
-#celery的配置
+# celery的配置
 CELERY_BROKER_URL = 'redis://192.168.1.62/1'
 CELERY_RESULT_BACKEND = 'redis://192.168.1.62/2'
+
+# 增加搜索引擎配置（有solr，whoosh，elastic search）,这里选择whoosh
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        # 'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',  自身的引擎
+        'ENGINE': 'course.whoosh_backend.WhooshEngine',  #添加结巴分词后的自身的的引擎
+
+        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+    },
+}
+# 配置自动更新索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+# 配置搜索结果的分页器的每页数量（rest-framework里面用不到）
+# HAYSTACK_SEARCH_RESULTS_PER_PAGE = 10
