@@ -25,3 +25,17 @@ from django.utils.deprecation import MiddlewareMixin
 class learnAOP(MiddlewareMixin):
     def process_request(self, request):
         print('哈哈哈哈哈哈哈我是中间件request的路径:', request.META.get('REMOTE_ADDR'))
+
+
+
+#
+# from social.apps.django_app.middleware import SocialAuthExceptionMiddleware
+# from django.shortcuts import HttpResponse
+# from social import exceptions as social_exceptions
+#
+# class SocialAuthExceptionMiddleware(SocialAuthExceptionMiddleware):
+#     def process_exception(self, request, exception):
+#         if hasattr(social_exceptions, 'AuthCanceled'):
+#             return HttpResponse("I'm the Pony %s" % exception)
+#         else:
+#             raise exception

@@ -9,7 +9,6 @@ from .filters import CourseFilter
 from rest_framework import filters
 from Utils.pagination import Pagination
 
-
 from drf_haystack.viewsets import HaystackViewSet
 from course.serializers import CourseIndexSerializer
 from Utils.pagination import Pagination
@@ -17,8 +16,7 @@ from drf_haystack.filters import HaystackFilter, BaseHaystackFilterBackend
 from .models import Course
 
 
-#课程搜索的视图函数
-
+# 课程搜索的视图函数
 
 
 class CourseSearchViewSet(HaystackViewSet):
@@ -27,6 +25,7 @@ class CourseSearchViewSet(HaystackViewSet):
     # 这里可以写多个模型，相应的：serializer里也可以写多个index_classes
     index_models = [Course, ]
     serializer_class = CourseIndexSerializer
+
     # 这时filter，这里用到了type
     # filter_backends = [HaystackFilter]
     # filter_fields = ("user", "title")
@@ -49,8 +48,6 @@ class CourseSearchViewSet(HaystackViewSet):
     #         "review": [Review]
     #     }
     #     return di.get(model, self.index_models)
-
-
 
 
 class CourseInfoViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

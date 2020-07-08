@@ -3,3 +3,4 @@
 {{ object.user }}
 {{ object.brief }}
 {{ object.desc }}
+{{ object.id }}

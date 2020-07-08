@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -70,6 +72,8 @@ INSTALLED_APPS = [
     'course',
     'django_filters',
     'corsheaders',
+    'social_django',   #第三方登录
+
 
 ]
 
@@ -98,6 +102,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',           #第三方登录的两个配置
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -116,6 +122,7 @@ DATABASES = {
         'PASSWORD': 'root',
         'HOST': '192.168.19.1',
         'PORT': 3306,
+        # "OPTIONS": {"init_command": "SET default_storage_engine=INNODB;"}   #第三方登录有可能不适应mysql的misamm引擎
     }
 }
 
@@ -155,6 +162,30 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+
+
+
+#第三方登录设置
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.weibo.WeiboOAuth2',
+    # 'social_core.backends.qq.QQOAuth2',
+    # 'social_core.backends.weixin.WeixinOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+SOCIAL_AUTH_WEIBO_KEY = '165036508'
+SOCIAL_AUTH_WEIBO_SECRET = 'aae38e3d40b1bb429e40a1eacb6ad23e'
+
+SOCIAL_AUTH_QQ_KEY = 'xxxxxxx'
+SOCIAL_AUTH_QQ_SECRET = 'xxxxxxx'
+
+SOCIAL_AUTH_WEIXIN_KEY = 'xxxxxxx'
+SOCIAL_AUTH_WEIXIN_SECRET = 'xxxxxxx'
+
+#登录成功后跳转到首页
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/course/courseInfo/'
+
+# AUTH_USER_MODEL = 'user.User'
+
 # 阿里短信设置
 ALI_KEY = "your key"
 ALI_SECRET = 'your secret'
@@ -164,26 +195,25 @@ ALI_SIGNNAME = 'your signame'
 ALI_LOGOIN_CODE = 'your msg tempalte id'
 
 # 缓存配置
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.19.140:6379/0",  # 就是Ubuntu的ip地址,安装pip install django-redis
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://192.168.19.140:6379/0",  # 就是Ubuntu的ip地址,安装pip install django-redis
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
 
 # celery的配置
-CELERY_BROKER_URL = 'redis://192.168.1.62/1'
-CELERY_RESULT_BACKEND = 'redis://192.168.1.62/2'
+# CELERY_BROKER_URL = 'redis://192.168.1.62/1'
+# CELERY_RESULT_BACKEND = 'redis://192.168.1.62/2'
 
 # 增加搜索引擎配置（有solr，whoosh，elastic search）,这里选择whoosh
 HAYSTACK_CONNECTIONS = {
     'default': {
-        # 'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',  自身的引擎
-        'ENGINE': 'course.whoosh_backend.WhooshEngine',  #添加结巴分词后的自身的的引擎
-
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',  # 自身的引擎
+        # 'ENGINE': 'course.whoosh_backend.WhooshEngine',  #添加结巴分词后的自身的的引擎
         'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
     },
 }
@@ -191,3 +221,28 @@ HAYSTACK_CONNECTIONS = {
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 # 配置搜索结果的分页器的每页数量（rest-framework里面用不到）
 # HAYSTACK_SEARCH_RESULTS_PER_PAGE = 10
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.AutoSchema",   #自动生成api文档
+}
+
+
+#七牛云配置
+
+# SELF_HOST = 'https://4bytes.cn/'   #这是七牛云回填给自己的域名
+QINIU_ACCESS_KEY = 'sLiRDRaeUJrpVTiVI9EGhhEJRkXqJ9ZWDVoX3rfI'
+QINIU_SECRET_KEY = 'rvPGk8m0T3CF8G2yXYqJy3SWopWkb_69Owg3woq9'
+QINIU_BUCKET_NAME = 'walkmanstore'
+
+QINIU_BUCKET_DOMAIN = 'http://q8goto9jq.bkt.clouddn.com/'
+#
+# QINIU_SECURE_URL = False  # 使用http
+#
+# PREFIX_URL = 'http://'
+#
+# DEFAULT_FILE_STORAGE = 'qiniustorage.backends.QiniuMediaStorage'
+
+# 支付宝相关配置
+private_key_path = os.path.join(BASE_DIR,'Utils/ali_keys/private_2048.txt')
+ali_pub_key_path = os.path.join(BASE_DIR,'Utils/ali_keys/alipay_key_2048.txt')

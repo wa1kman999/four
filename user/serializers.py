@@ -1,5 +1,7 @@
 from rest_framework import serializers
 import re
+
+from Utils.Qiniuyun import upload_avatar
 from Utils.utils import is_safe_password
 from user.models import User
 from rest_framework.validators import UniqueTogetherValidator
@@ -90,6 +92,15 @@ class UserInfoViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['nick_name', 'region', 'avatar_url', 'gender', 'brief', 'desc']
+
+
+
+
+
+    #
+
+
+
 
 
 

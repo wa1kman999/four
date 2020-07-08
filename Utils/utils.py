@@ -46,3 +46,7 @@ def is_safe_password(password):
     '''
     import re
     return re.match('(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$', password)
+
+
+
+#七牛云存储

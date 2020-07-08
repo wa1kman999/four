@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from .views import LoginView, SmsLoginView, RegisterView, UserInfoView, ChangePwdView
+from .views import LoginView, SmsLoginView, RegisterView, UserInfoView, ChangePwdView, UploadToken,OrderView, AlipayView
 from rest_framework.routers import DefaultRouter
 from . import views
 routers = DefaultRouter()
@@ -30,6 +30,9 @@ urlpatterns = [
     path('smslogin/', SmsLoginView.as_view()),   #短信验证码登录
     path('register/', RegisterView.as_view()),  # 注册
     path('changepwd/', ChangePwdView.as_view()),  #修改密码
+    path('uploadtoken/', UploadToken.as_view()),  #七牛云传照片
+    path('pay/', OrderView.as_view()),   #支付宝支付
+    path('payres/', AlipayView.as_view()), #结果返回
 
 
 ]
