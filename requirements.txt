@@ -21,7 +21,7 @@ drf-haystack==1.8.6
 idna==2.9
 itypes==1.1.0
 jieba==0.42.1
-Jinja2==2.11.1
+Jinja2==2.11.3
 jmespath==0.9.5
 kombu==4.6.8
 MarkupSafe==1.1.1
